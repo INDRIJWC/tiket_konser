@@ -27,3 +27,7 @@ Route::get('/report', 'MainController@report');
 Route::get('/request/data/{type}','MainController@requestData');
 
 Route::post('/check/ticket', 'MainController@checkinTicket');
+Route::get('/pemesanan','MainController@pemesan');
+Route::get('/pemesan/data','MainController@dataPemesan');
+Route::get('order/delete/{id}','MainController@deleteOrder');
+Route::post('/editOrder','MainController@editOrder');

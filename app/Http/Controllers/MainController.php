@@ -39,6 +39,13 @@ class MainController extends Controller
         return view('signin');
 	}
 
+    public function pemesan(){
+        if(Auth::check()){
+            return view('dashboard/pemesan');
+        }
+        return redirect::to("/")->withSuccess('Oopps! You do not have access');
+	}
+
     public function order(Request $request){
         $request->validate([
             "name"        =>    "required",
@@ -77,8 +84,98 @@ class MainController extends Controller
 	        return view('dashboard/report');
 		}
         return redirect::to("/")->withSuccess('Oopps! You do not have access');
-
     }
+
+    public function deleteOrder($id){
+        DB::table('booking')->where('id',base64_decode($id))->delete();
+        return back()->with('success', 'Berhasil di hapus.');
+    }
+
+    public function editOrder(Request $request){
+        $request->validate([
+            "id"          =>    "required",
+            "nama"        =>    "required",
+            "alamat"      =>    "required"
+        ]);
+
+        $update = DB::table('booking')->where('id', $request->id)->update([
+            'name' => $request->nama,
+            'address' => $request->alamat
+        ]);
+
+        if($update){
+            return back()->with('success', 'Berhasil di update.');
+        }
+        return back()->with('error', $request->id.' '.$request->nama.' '.$request->alamat);
+    }
+
+    public function dataPemesan(Request $request){
+        if(Auth::check()) {
+            $draw = $request->get('draw');
+            $start = $request->get("start");
+            $rowperpage = $request->get("length");
+
+            $columnIndex_arr = $request->get('order');
+            $columnName_arr = $request->get('columns');
+            $order_arr = $request->get('order');
+            $search_arr = $request->get('search');
+
+            $columnIndex = $columnIndex_arr[0]['column'];
+            $columnName = $columnName_arr[$columnIndex]['data'];
+            $columnSortOrder = $order_arr[0]['dir'];
+            $searchValue = $search_arr['value'];
+
+
+            $datatotal = "";
+            $data = "";
+            
+            $data = Order::where('name', 'like', '%' . $searchValue . '%')
+                    ->orWhere('address', 'like', '%' . $searchValue . '%')
+                    ->orderBy('id','ASC')->get();      
+            
+            
+            $collectAll = collect($data);
+            $collectFilter = collect($data);
+
+            $totalRecords = $collectAll->count();
+            $totalRecordswithFilter = $collectFilter->count();
+
+            $result = $collectFilter
+            ->skip($start)
+            ->take($rowperpage);
+
+            $data_arr=array();
+
+            foreach($result as $p){
+                $id       = $p->id;
+                $nama       = $p->name;
+                $address     = $p->address;
+                $checkin     = $p->checkin;
+
+                $data_arr[] = array(
+                    "id"        => $id,
+                    "nama"      => $nama,
+                    "address"    => $address,
+                    "checkin"       => $checkin
+                );
+            }
+
+            $response = array(
+                "draw" => intval($draw),
+                "iTotalRecords" => $totalRecords,
+                "iTotalDisplayRecords" => $totalRecordswithFilter,
+                "aaData" => $data_arr
+            );
+
+            echo json_encode($response);
+            exit;
+            
+
+        }else{
+			echo json_encode("U dont have access");
+				exit;
+		}
+	}
 
     public function requestData(Request $request, $type){
 		if(Auth::check()) {
