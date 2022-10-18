@@ -10,10 +10,11 @@
 ## How to use
 --------
 ```
-    run php artisan db:create tiket_konser
+    run php artisan db:create db_name
     run php artisan migrate
     run php artisan db:seed --class=AgenXSeeder
-   
+
+    dont forget to update 'DB_DATABASE' value to db_name in the .env file
 ```
 
 Laravel is accessible, powerful, and provides tools required for large, robust applications.
